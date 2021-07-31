@@ -6,11 +6,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func loadImagesInDir(dir string, renderer *sdl.Renderer) (result []*sdl.Texture) {
+func loadImagesInDir(dir string, renderer *sdl.Renderer) (result []Image) {
 	supportedTypes := []string{".png", ".jpg", ".bmp"} // Must have dots
 	images := findImagesInDir(dir, supportedTypes)
 
@@ -35,21 +34,11 @@ func findImagesInDir(dir string, supportedTypes []string) (result []string) {
 	return
 }
 
-func loadImage(path string, renderer *sdl.Renderer) *sdl.Texture {
-	image, err := img.Load(path)
-	checkError(err)
+func render(window *sdl.Window, renderer *sdl.Renderer, image Image) {
+	screenWidth, screenHeight := window.GetSize()
 
-	texture, err := renderer.CreateTextureFromSurface(image)
-	checkError(err)
-
-	image.Free()
-
-	return texture
-}
-
-func render(renderer *sdl.Renderer, image *sdl.Texture) {
 	renderer.Clear()
-	renderer.Copy(image, nil, nil)
+	image.Render(renderer, screenWidth, screenHeight)
 	renderer.Present()
 }
 
@@ -107,6 +96,6 @@ func main() {
 			}
 		}
 
-		render(renderer, currentImage)
+		render(window, renderer, currentImage)
 	}
 }
