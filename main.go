@@ -10,7 +10,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func loadImagesInDir(dir string, supportedTypes []string, renderer *sdl.Renderer) (result []*sdl.Texture) {
+func loadImagesInDir(dir string, renderer *sdl.Renderer) (result []*sdl.Texture) {
+	supportedTypes := []string{".png", ".jpg", ".bmp"} // Must have dots
 	images := findImagesInDir(dir, supportedTypes)
 
 	for _, image := range images {
@@ -65,10 +66,9 @@ func main() {
 	checkError(err)
 	defer renderer.Destroy()
 
-	// @TODO (!important) somehow make it not lag on load
-	supportedImages := []string{".png", ".jpg", ".bmp"} // Must have dots
 	currentImageIndex := 0
-	images := loadImagesInDir("D:/Wallpapers", supportedImages, renderer)
+	// @TODO (!important) somehow make it not lag on load
+	images := loadImagesInDir("D:/Wallpapers", renderer)
 	currentImage := images[currentImageIndex]
 
 	renderer.SetDrawColor(0, 0, 0, 255)
