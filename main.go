@@ -79,7 +79,7 @@ func main() {
 						break
 					}
 
-					nextImage := clamp(currentImage+1, 0, len(images))
+					nextImage := clamp(currentImage+1, 0, len(images)-1)
 					if nextImage != currentImage {
 						currentImage = nextImage
 						image.Destroy()
@@ -90,7 +90,7 @@ func main() {
 						break
 					}
 
-					nextImage := clamp(currentImage-1, 0, len(images))
+					nextImage := clamp(currentImage-1, 0, len(images)-1)
 					if nextImage != currentImage {
 						currentImage = nextImage
 						image.Destroy()
