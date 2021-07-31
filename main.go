@@ -10,6 +10,16 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+func loadImagesInDir(dir string, supportedTypes []string, renderer *sdl.Renderer) (result []*sdl.Texture) {
+	images := findImagesInDir(dir, supportedTypes)
+
+	for _, image := range images {
+		result = append(result, loadImage(image, renderer))
+	}
+
+	return
+}
+
 func findImagesInDir(dir string, supportedTypes []string) (result []string) {
 	files, err := ioutil.ReadDir(dir)
 	checkError(err)
@@ -55,14 +65,13 @@ func main() {
 	checkError(err)
 	defer renderer.Destroy()
 
+	// @TODO (!important) somehow make it not lag on load
 	supportedImages := []string{".png", ".jpg", ".bmp"} // Must have dots
-	currentImage := 0
-	images := findImagesInDir("D:/Wallpapers", supportedImages)
+	currentImageIndex := 0
+	images := loadImagesInDir("D:/Wallpapers", supportedImages, renderer)
+	currentImage := images[currentImageIndex]
 
 	renderer.SetDrawColor(0, 0, 0, 255)
-
-	image := loadImage(images[currentImage], renderer)
-	defer image.Destroy()
 
 	running := true
 	for running {
@@ -79,27 +88,25 @@ func main() {
 						break
 					}
 
-					nextImage := clamp(currentImage+1, 0, len(images)-1)
-					if nextImage != currentImage {
-						currentImage = nextImage
-						image.Destroy()
-						image = loadImage(images[currentImage], renderer)
+					nextImage := clamp(currentImageIndex+1, 0, len(images)-1)
+					if nextImage != currentImageIndex {
+						currentImageIndex = nextImage
+						currentImage = images[currentImageIndex]
 					}
 				case sdl.K_LEFT:
 					if t.Repeat > 0 || t.State == sdl.RELEASED {
 						break
 					}
 
-					nextImage := clamp(currentImage-1, 0, len(images)-1)
-					if nextImage != currentImage {
-						currentImage = nextImage
-						image.Destroy()
-						image = loadImage(images[currentImage], renderer)
+					nextImage := clamp(currentImageIndex-1, 0, len(images)-1)
+					if nextImage != currentImageIndex {
+						currentImageIndex = nextImage
+						currentImage = images[currentImageIndex]
 					}
 				}
 			}
 		}
 
-		render(renderer, image)
+		render(renderer, currentImage)
 	}
 }
