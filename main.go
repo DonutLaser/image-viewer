@@ -42,6 +42,8 @@ func render(window *sdl.Window, renderer *sdl.Renderer, image Image) {
 	renderer.Present()
 }
 
+// @TODO (!important) slideshow
+
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	checkError(err)
@@ -55,7 +57,7 @@ func main() {
 	checkError(err)
 	defer renderer.Destroy()
 
-	currentImageIndex := 0
+	var currentImageIndex int32 = 0
 	// @TODO (!important) somehow make it not lag on load
 	images := loadImagesInDir("D:/Wallpapers", renderer)
 	currentImage := images[currentImageIndex]
@@ -71,13 +73,14 @@ func main() {
 			case *sdl.KeyboardEvent:
 				keyCode := t.Keysym.Sym
 
+				// @TODO (!important) `key up and key down to zoom in/out`
 				switch keyCode {
 				case sdl.K_RIGHT:
 					if t.Repeat > 0 || t.State == sdl.RELEASED {
 						break
 					}
 
-					nextImage := clamp(currentImageIndex+1, 0, len(images)-1)
+					nextImage := clamp(currentImageIndex+1, 0, int32(len(images)-1))
 					if nextImage != currentImageIndex {
 						currentImageIndex = nextImage
 						currentImage = images[currentImageIndex]
@@ -87,7 +90,7 @@ func main() {
 						break
 					}
 
-					nextImage := clamp(currentImageIndex-1, 0, len(images)-1)
+					nextImage := clamp(currentImageIndex-1, 0, int32(len(images)-1))
 					if nextImage != currentImageIndex {
 						currentImageIndex = nextImage
 						currentImage = images[currentImageIndex]
