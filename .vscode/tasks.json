@@ -13,9 +13,9 @@
 			}
 		},
 		{
-			"label': "test",
-			"type': "shell",
-			"command': "go test . -v",
+			"label": "test",
+			"type": "shell",
+			"command": "go test . -v",
 			"group": {
 				"kind": "test",
 				"isDefault": true

@@ -30,7 +30,6 @@ func loadImage(path string, renderer *sdl.Renderer) (result Image) {
 }
 
 func (i *Image) Render(renderer *sdl.Renderer, screenWidth int32, screenHeight int32) {
-	// @TODO (!important) image is not rendered correctly when screen width exceeds the image width
 	var finalRect *sdl.Rect
 	if i.Width >= i.Height {
 		ratio := float64(i.Height) / float64(i.Width)

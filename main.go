@@ -1,46 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"path"
-	"strings"
-
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
-
-func loadImagesInDir(dir string, renderer *sdl.Renderer) (result []Image) {
-	supportedTypes := []string{".png", ".jpg", ".bmp"} // Must have dots
-	images := findImagesInDir(dir, supportedTypes)
-
-	for _, image := range images {
-		result = append(result, loadImage(image, renderer))
-	}
-
-	return
-}
-
-func findImagesInDir(dir string, supportedTypes []string) (result []string) {
-	files, err := ioutil.ReadDir(dir)
-	checkError(err)
-
-	for _, file := range files {
-		extension := strings.ToLower(path.Ext(file.Name()))
-		if containsString(supportedTypes, extension) {
-			result = append(result, fmt.Sprintf("%s/%s", dir, file.Name()))
-		}
-	}
-
-	return
-}
-
-func render(window *sdl.Window, renderer *sdl.Renderer, image Image) {
-	screenWidth, screenHeight := window.GetSize()
-
-	renderer.Clear()
-	image.Render(renderer, screenWidth, screenHeight)
-	renderer.Present()
-}
 
 // @TODO (!important) slideshow
 
@@ -48,6 +11,10 @@ func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	checkError(err)
 	defer sdl.Quit()
+
+	err = ttf.Init()
+	checkError(err)
+	defer ttf.Quit()
 
 	window, err := sdl.CreateWindow("Image Viewer", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, sdl.WINDOW_RESIZABLE)
 	checkError(err)
@@ -57,48 +24,70 @@ func main() {
 	checkError(err)
 	defer renderer.Destroy()
 
-	var currentImageIndex int32 = 0
-	// @TODO (!important) somehow make it not lag on load
-	images := loadImagesInDir("D:/Wallpapers", renderer)
-	currentImage := images[currentImageIndex]
-
-	renderer.SetDrawColor(0, 0, 0, 255)
+	app := Init(renderer)
 
 	running := true
 	for running {
+		lastLeftState := app.MouseState.LeftButton
+		lastRightState := app.MouseState.RightButton
+
+		app.MouseState.LeftButton = None
+		app.MouseState.RightButton = None
+		app.KeyboardState.LeftArrow = None
+		app.KeyboardState.RightArrow = None
+
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
 			case *sdl.QuitEvent:
 				running = false
+			case *sdl.MouseMotionEvent:
+				app.MouseState.X = t.X
+				app.MouseState.Y = t.Y
+			case *sdl.MouseButtonEvent:
+				if t.Button == sdl.BUTTON_LEFT {
+					if t.State == sdl.RELEASED {
+						app.MouseState.LeftButton = Released
+					} else if t.State == sdl.PRESSED && lastLeftState == JustPressed {
+						app.MouseState.LeftButton = Pressed
+					} else {
+						app.MouseState.LeftButton = JustPressed
+					}
+				} else if t.Button == sdl.BUTTON_RIGHT {
+					if t.State == sdl.RELEASED {
+						app.MouseState.RightButton = Released
+					} else if t.State == sdl.PRESSED && lastRightState == JustPressed {
+						app.MouseState.RightButton = Pressed
+					} else {
+						app.MouseState.RightButton = JustPressed
+					}
+				}
 			case *sdl.KeyboardEvent:
 				keyCode := t.Keysym.Sym
 
-				// @TODO (!important) `key up and key down to zoom in/out`
 				switch keyCode {
 				case sdl.K_RIGHT:
-					if t.Repeat > 0 || t.State == sdl.RELEASED {
-						break
-					}
-
-					nextImage := clamp(currentImageIndex+1, 0, int32(len(images)-1))
-					if nextImage != currentImageIndex {
-						currentImageIndex = nextImage
-						currentImage = images[currentImageIndex]
+					if t.State == sdl.RELEASED {
+						app.KeyboardState.RightArrow = Released
+					} else if t.Repeat > 0 {
+						app.KeyboardState.RightArrow = Pressed
+					} else {
+						app.KeyboardState.RightArrow = JustPressed
 					}
 				case sdl.K_LEFT:
-					if t.Repeat > 0 || t.State == sdl.RELEASED {
-						break
-					}
-
-					nextImage := clamp(currentImageIndex-1, 0, int32(len(images)-1))
-					if nextImage != currentImageIndex {
-						currentImageIndex = nextImage
-						currentImage = images[currentImageIndex]
+					if t.State == sdl.RELEASED {
+						app.KeyboardState.LeftArrow = Released
+					} else if t.Repeat > 0 {
+						app.KeyboardState.LeftArrow = Pressed
+					} else {
+						app.KeyboardState.LeftArrow = JustPressed
 					}
 				}
 			}
 		}
 
-		render(window, renderer, currentImage)
+		app.WindowWidth, app.WindowHeight = window.GetSize()
+		app.Tick()
 	}
+
+	app.Close()
 }
