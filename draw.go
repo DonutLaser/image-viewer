@@ -28,3 +28,13 @@ func (r *Renderer) DrawText(text string, rect *sdl.Rect, color sdl.Color) {
 
 	surface.Free()
 }
+
+func (r *Renderer) DrawRectOutline(rect *sdl.Rect, color sdl.Color) {
+	r.Instance.SetDrawColor(color.R, color.G, color.B, color.A)
+	r.Instance.DrawRect(rect)
+}
+
+func (r *Renderer) DrawRect(rect *sdl.Rect, color sdl.Color) {
+	r.Instance.SetDrawColor(color.R, color.G, color.B, color.A)
+	r.Instance.FillRect(rect)
+}

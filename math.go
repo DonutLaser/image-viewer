@@ -2,13 +2,25 @@ package main
 
 import "math"
 
-func clamp(value int32, min int32, max int32) int32 {
+func clamp(value int, min int, max int) int {
 	if value < min {
 		return min
 	}
 
 	if value > max {
 		return max
+	}
+
+	return value
+}
+
+func wrap(value int, min int, max int) int {
+	if value < min {
+		return max
+	}
+
+	if value > max {
+		return min
 	}
 
 	return value
