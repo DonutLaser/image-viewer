@@ -6,6 +6,7 @@ import (
 )
 
 // @TODO (!important) slideshow
+// @NEXT WaitForEvent and ability to somehow do a slideshow
 
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -36,7 +37,7 @@ func main() {
 		app.KeyboardState.LeftArrow = None
 		app.KeyboardState.RightArrow = None
 
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		for event := sdl.WaitEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
 			case *sdl.QuitEvent:
 				running = false
