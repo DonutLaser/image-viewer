@@ -29,6 +29,10 @@ func loadImage(path string, renderer *sdl.Renderer) (result Image) {
 	return
 }
 
+func (i *Image) Unload() {
+	i.Data.Destroy()
+}
+
 func (i *Image) Render(renderer *sdl.Renderer, screenWidth int32, screenHeight int32) {
 	var finalRect *sdl.Rect
 	if i.Width >= i.Height {

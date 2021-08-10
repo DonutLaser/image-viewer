@@ -5,8 +5,6 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-// @TODO (!important) slideshow
-
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	checkError(err)

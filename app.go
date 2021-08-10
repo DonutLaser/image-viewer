@@ -47,7 +47,8 @@ type App struct {
 	WindowHeight int32
 
 	CurrentImageIndex int
-	Images            []Image
+	CurrentImage      Image
+	Images            []string
 
 	ShowTimer        bool
 	Times            []TimeAmount
@@ -67,14 +68,16 @@ func Init(renderer *sdl.Renderer) App {
 	app.Renderer.Instance.SetDrawColor(0, 0, 0, 255)
 
 	app.CurrentTimeIndex = 0
-	app.Times = make([]TimeAmount, 7)
+	app.Times = make([]TimeAmount, 9)
 	app.Times[0] = TimeAmount{Value: 0, Text: "Slideshow turned off"}
-	app.Times[1] = TimeAmount{Value: 60000, Text: "1 minute"}
-	app.Times[2] = TimeAmount{Value: 120000, Text: "2 minutes"}
-	app.Times[3] = TimeAmount{Value: 300000, Text: "5 minutes"}
-	app.Times[4] = TimeAmount{Value: 600000, Text: "10 minutes"}
-	app.Times[5] = TimeAmount{Value: 1800000, Text: "30 minutes"}
-	app.Times[6] = TimeAmount{Value: 3600000, Text: "1 hour"}
+	app.Times[1] = TimeAmount{Value: 10000, Text: "10 seconds"}
+	app.Times[2] = TimeAmount{Value: 30000, Text: "30 seconds"}
+	app.Times[3] = TimeAmount{Value: 60000, Text: "1 minute"}
+	app.Times[4] = TimeAmount{Value: 120000, Text: "2 minutes"}
+	app.Times[5] = TimeAmount{Value: 300000, Text: "5 minutes"}
+	app.Times[6] = TimeAmount{Value: 600000, Text: "10 minutes"}
+	app.Times[7] = TimeAmount{Value: 1800000, Text: "30 minutes"}
+	app.Times[8] = TimeAmount{Value: 3600000, Text: "1 hour"}
 
 	return app
 }
@@ -101,8 +104,9 @@ func (app *App) initMode() {
 	if app.MouseState.LeftButton == Released {
 		directory, err := dialog.Directory().Title("Choose directory...").Browse()
 		if err == nil {
-			app.loadImagesInDir(directory)
 			app.CurrentImageIndex = 0
+			app.loadImagesInDir(directory)
+			app.loadCurrentImage()
 		}
 	}
 
@@ -141,7 +145,7 @@ func (app *App) imagesMode() {
 	app.Renderer.Instance.SetDrawColor(0, 0, 0, 255)
 	app.Renderer.Instance.Clear()
 
-	app.Images[app.CurrentImageIndex].Render(app.Renderer.Instance, app.WindowWidth, app.WindowHeight)
+	app.CurrentImage.Render(app.Renderer.Instance, app.WindowWidth, app.WindowHeight)
 
 	if app.ShowTimer {
 		text := app.Times[app.CurrentTimeIndex].Text
@@ -170,20 +174,23 @@ func (app *App) imagesMode() {
 
 func (app *App) Close() {
 	app.Renderer.Font.Close()
+	app.CurrentImage.Unload()
 }
 
-// @TODO (!important) prevent lag when loading, goroutines?
 func (app *App) loadImagesInDir(dir string) {
 	supportedTypes := []string{".png", ".jpg", ".bmp"} // Must have dots
-	images := findImagesInDir(dir, supportedTypes)
+	app.Images = findImagesInDir(dir, supportedTypes)
+}
 
-	for _, image := range images {
-		app.Images = append(app.Images, loadImage(image, app.Renderer.Instance))
-	}
+func (app *App) loadCurrentImage() {
+	app.CurrentImage = loadImage(app.Images[app.CurrentImageIndex], app.Renderer.Instance)
 }
 
 func (app *App) changeImage(direction int) {
 	app.CurrentImageIndex = wrap(app.CurrentImageIndex+direction, 0, len(app.Images)-1)
+
+	app.CurrentImage.Unload()
+	app.loadCurrentImage()
 }
 
 func findImagesInDir(dir string, supportedTypes []string) (result []string) {
