@@ -77,11 +77,13 @@ func (app *App) initMode() {
 	message := "Click anywhere to choose a directory..."
 
 	if app.MouseState.LeftButton == Released {
-		directory, _ := dialog.Directory().Title("Choose directory...").Browse()
-		app.loadImagesInDir(directory)
+		directory, err := dialog.Directory().Title("Choose directory...").Browse()
+		if err == nil {
+			app.loadImagesInDir(directory)
 
-		app.CurrentImageIndex = 0
-		app.CurrentImage = app.Images[app.CurrentImageIndex]
+			app.CurrentImageIndex = 0
+			app.CurrentImage = app.Images[app.CurrentImageIndex]
+		}
 	}
 
 	app.Renderer.Instance.Clear()
